@@ -1,0 +1,63 @@
+services:
+  prediction-service:
+    build:
+      context: ./prediction-model-server
+      dockerfile: Dockerfile
+    container_name: prediction-service
+    ports:
+      - "8001:8001"
+    networks:
+      - propertyiq-net
+    restart: unless-stopped
+
+  market-spring:
+    build:
+      context: ./market-spring-be
+      dockerfile: Dockerfile
+    container_name: market-spring
+    ports:
+      - "8081:8081"
+    environment:
+      PREDICTION_SERVICE_URL: http://prediction-service:8001
+    depends_on:
+      - prediction-service
+    networks:
+      - propertyiq-net
+    restart: unless-stopped
+
+  estimator-python:
+    build:
+      context: ./estimator-py-be
+      dockerfile: Dockerfile
+    container_name: estimator-python
+    ports:
+      - "8002:8002"
+    environment:
+      PREDICTION_LLM_API_URL: http://prediction-service:8001
+    depends_on:
+      - prediction-service
+    networks:
+      - propertyiq-net
+    restart: unless-stopped
+
+  propertyiq-next:
+    build:
+      context: ./propertyiq-next
+      dockerfile: Dockerfile
+    container_name: propertyiq-next
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PREDICTION_SERVICE_URL: http://prediction-service:8001
+      NEXT_ESTIMATOR_SERVICE_URL: http://estimator-python:8002
+      NEXT_MARKET_SERVICE_URL: http://market-spring:8081
+    depends_on:
+      - estimator-python
+      - market-spring
+    networks:
+      - propertyiq-net
+    restart: unless-stopped
+
+networks:
+  propertyiq-net:
+    driver: bridge
