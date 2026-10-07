@@ -1,0 +1,15 @@
+{
+    "feature_names": [
+        "square_footage",
+        "bedrooms",
+        "bathrooms",
+        "year_built",
+        "lot_size",
+        "distance_to_city_center",
+        "school_rating"
+    ],
+    "metrics": {
+        "mean_squared_error": 105617715.0,
+        "r2_score": 0.98
+    }
+}
